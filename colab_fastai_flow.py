@@ -34,7 +34,8 @@ def pic_upload():
     pic_upload.img_output = widgets.FileUpload(
         accept='image/*',  # Accepted file extension e.g. '.txt', '.pdf', 'image/*', 'image/*,.pdf'
         multiple=False # Por enquanto só aceita 1 arquivo
-        )    
+        )
+    display(img_output)
    
 def dados(splitter_percent_validation, item_tfms_resize, item_tfms_resize_mtd, batch_tfms_aug_tfms_size):
   path = get_path.path_choice
@@ -145,7 +146,7 @@ def ui():
                                            style = style,
                                            description = "Qtd visualização batch: ")
 
-    display(batch_show_size, batch_show)
+    display(batch_show_size, batch_show, pic_upload)
 
     def on_button_clicked_batch_show(b):
       dados.dls.show_batch(max_n=batch_show_size.value)
