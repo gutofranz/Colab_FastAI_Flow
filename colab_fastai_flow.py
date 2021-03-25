@@ -31,7 +31,7 @@ def set_path():
   btn_set_path.on_click(on_button_clicked_set_path)
 
 def pic_upload():
-    pic_upload.img_output = widgets.FileUpload(
+    pic_upload.img_output = ipywidgets.FileUpload(
         accept='image/*',  # Accepted file extension e.g. '.txt', '.pdf', 'image/*', 'image/*,.pdf'
         multiple=False # Por enquanto só aceita 1 arquivo
         )
