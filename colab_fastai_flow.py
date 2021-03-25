@@ -1,4 +1,4 @@
-!pip install fastai --upgrade -q
+#!pip install fastai --upgrade -q
 
 from fastai.vision.all  import *
 from fastai.callback    import *
@@ -29,6 +29,12 @@ def set_path():
       get_path()
 
   btn_set_path.on_click(on_button_clicked_set_path)
+
+def pic_upload():
+    pic_upload.img_output = widgets.FileUpload(
+        accept='image/*',  # Accepted file extension e.g. '.txt', '.pdf', 'image/*', 'image/*,.pdf'
+        multiple=False # Por enquanto só aceita 1 arquivo
+        )    
    
 def dados(splitter_percent_validation, item_tfms_resize, item_tfms_resize_mtd, batch_tfms_aug_tfms_size):
   path = get_path.path_choice
@@ -49,6 +55,7 @@ def dados(splitter_percent_validation, item_tfms_resize, item_tfms_resize_mtd, b
   dls = trees.dataloaders(path)
   dados.dls = dls
   print('dados carregados')
+  pic_upload()
   
 
 def treinamento(model_architecture_value, epochs):
