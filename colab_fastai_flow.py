@@ -31,10 +31,11 @@ def set_path():
   btn_set_path.on_click(on_button_clicked_set_path)
 
 def pic_upload():
-    pic_upload.img_output = ipywidgets.FileUpload(
+    btn_upload = ipywidgets.FileUpload(
         accept='image/*',  # Accepted file extension e.g. '.txt', '.pdf', 'image/*', 'image/*,.pdf'
         multiple=False # Por enquanto só aceita 1 arquivo
         )
+    pic_upload.img_output = btn_upload.image
     display(img_output)
    
 def dados(splitter_percent_validation, item_tfms_resize, item_tfms_resize_mtd, batch_tfms_aug_tfms_size):
