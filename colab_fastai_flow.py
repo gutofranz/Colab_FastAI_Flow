@@ -1,5 +1,3 @@
-!pip install fastai --upgrade -q
-
 from fastai.vision.all  import *
 from fastai.callback    import *
 from fastai.metrics     import error_rate
