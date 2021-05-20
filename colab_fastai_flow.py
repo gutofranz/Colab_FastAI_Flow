@@ -1,5 +1,8 @@
 #Importacao via python da biblioteca fastai
-#! [ -e /content ] && pip install -Uqq fastai  
+! [ -e /content ] && pip install -Uqq fastai  
+
+# funcionou com essa flag comentada, se continuar assim vou excluir
+#%matplotlib inline
 
 #Importações do google colab
 from google.colab import drive
@@ -29,6 +32,7 @@ def set_dls():
 
 def set_learner():
   set_learner.learner = None
+  set_learner.interp = None
 
 
 # Função para a criação do DataLoader
@@ -55,7 +59,7 @@ def build_data(path, item_tfms_resize, item_tfms_resize_mtd, splitter_percent_va
                     batch_tfms=batch_tfms)
   
   # Criação do DataLoader
-  dls = trees.dataloaders(path)
+  dls = trees.dataloaders(path, bs=10)
   build_data.dls = dls
 
 # Função para a realização do treinamento
@@ -75,7 +79,7 @@ def treinamento(model_architecture, epochs):
 def exec():
 
   # Criação do painel que vai conter as abas
-  tab = colabwidigets.TabBar(['Dados', 'Transfer Learning', 'Av. des. TL'])
+  tab = colabwidigets.TabBar(['Dados', 'Transfer Learning', 'Av. des. TL', 'Fine Tuning', 'Av. Des. FT'])
 
   # Execução da primeira aba: Dados
   with tab.output_to(0):
@@ -250,7 +254,8 @@ def exec():
           print('Arquitetura = ' + str(model_architecture.value))
           print('Epochs = ' + str(slider_epochs.value))
           treinamento(model_architecture.value, slider_epochs.value)   
-          set_learner.learner = treinamento.learner     
+          set_learner.learner = treinamento.learner
+          set_learner.interp = ClassificationInterpretation.from_learner(treinamento.learner)
  
       btn_train_model.on_click(on_btn_train_model_clicked)
 
@@ -258,7 +263,7 @@ def exec():
   with tab.output_to(2, select=False):  
 
     # Criação do grid que vai conter as etapas e entradas/saídas
-    grid3 = colabwidigets.Grid(10,1)
+    grid3 = colabwidigets.Grid(18,1)
 
     # Atividade - 16 - X - Matriz de confusao
     with grid3.output_to(0,0):
@@ -266,16 +271,16 @@ def exec():
 
       btn_show_c_matrix = ipywidgets.Button(description='Ver Matriz de confusão')
 
-      #display(btn_show_c_matrix)
+      display(btn_show_c_matrix)
     
       def on_btn_show_c_matrix(b):
         # Saída - Atividade 8
         with grid3.output_to(1,0):
           grid3.clear_cell()
-          y = set_learner.learn
+          y = set_learner.interp
           print('Carregando Matriz de confusão, aguarde...')
-          interp = ClassificationInterpretation.from_learner(y)
-          interp.plot_confusion_matrix()
+          grid3.clear_cell()
+          y.plot_confusion_matrix()
         
       btn_show_c_matrix.on_click(on_btn_show_c_matrix)  
 
@@ -286,26 +291,218 @@ def exec():
     # Atividade - 18 - top losses
     with grid3.output_to(3,0):
       print('18 - X - top losses')
+      slider_top_losses = ipywidgets.IntSlider(min = 1, max = 8, step = 1, value = 2, description = "Principais perdas")
+      btn_show_top_losses = ipywidgets.Button(description='Ver principais perdas')      
+
+      display(slider_top_losses, btn_show_top_losses)
+
+      def on_btn_show_top_losses(b):
+        #Saída Atividade 19
+        with grid3.output_to(4,0):
+          y = set_learner.interp
+          print('Carregando principais perdas, aguarde...')
+          y.plot_top_losses(slider_top_losses.value)  
+          print('carregou')
+
+      btn_show_top_losses.on_click(on_btn_show_top_losses)               
 
     # Atividade - 19 - most confused
-    with grid3.output_to(4,0):
+    with grid3.output_to(5,0):
       print('19 - X - most confused')  
 
+      slider_most_confused = ipywidgets.IntSlider(min = 1, max = 8, step = 1, value = 1, description = "Top most confused")
+      btn_show_most_confused = ipywidgets.Button(description='Ver mais confusos')      
+
+      display(slider_most_confused, btn_show_most_confused)
+
+      def on_btn_show_most_confused(b):
+        #Saída Atividade 19
+        with grid3.output_to(6,0):
+          y = set_learner.interp
+          print('Carregando itens mais confusos, aguarde...')
+          print(y.most_confused(min_val=slider_most_confused.value))
+          print('carregou')
+
+      btn_show_most_confused.on_click(on_btn_show_most_confused) 
+
     # Atividade - 20 - Heatmaps
-    with grid3.output_to(5,0):
+    with grid3.output_to(7,0):
       print('20 - X - Heatmaps')  
     
     # Atividade - 21 - Visualizações alternativa  
-    with grid3.output_to(6,0):
+    with grid3.output_to(8,0):
       print('21 - X - Visualizações alternativa')  
     
     # Atividade - 22 - Data cleaning (de novo?)
-    with grid3.output_to(7,0):
+    with grid3.output_to(9,0):
       print('22 - X - Data cleaning (de novo?)')  
     
     # Atividade - 
-    with grid3.output_to(8,0):
+    with grid3.output_to(10,0):
       print('23 - X - Imagens no validation set')  
+
+    # Atividade - X
+    with grid3.output_to(11,0):
+      print('24 - X - Salvar Modelo')  
+
+      btn_save_model = ipywidgets.Button(description='Salvar modelo')      
+
+      display(btn_save_model)
+
+      def on_btn_save_model(b):
+        #Saída Atividade 24
+        with grid3.output_to(12,0):
+          y = set_learner.learner
+          print('Salvando o modelo...')
+          y.save('model1')
+          print('salvou')
+
+    btn_save_model.on_click(on_btn_save_model) 
+
+  # Execução da quarta aba: Treinamento do modelo - #2 Fine Tuning
+  with tab.output_to(3, select=False):  
+
+    # Criação do grid que vai conter as etapas e entradas/saídas
+    grid4 = colabwidigets.Grid(5,1)
+
+    # Atividade 12 - Arquitetura
+    with grid4.output_to(0,0):
+
+      btn_exec2 = ipywidgets.Button(description='Carregar Modelo')
+      display(btn_exec2)
+
+      def on_btn_exec2(b):
+        with grid4.output_to(1,0):
+          print('Set da variavel')
+          y = set_learner.learner
+          print('Modelo carregado')
+          y.load('model1')
+          print('lr_find()')
+          y.lr_find()
+          print('plot_lr_find()')
+          y.recorder.plot_lr_find()
+          print('salvando modelo')
+          y.save('model1')
+          print('unfreeze')
+          y.unfreeze()
+          print('max_lr=slice...')
+          max_lr=slice(1e-4, 1e-3)
+          print('fit_one_cycle(3,max_lr)')
+          y.fit_one_cycle(3,max_lr)
+          print('Salvando o modelo')
+          y.save('model1')
+
+      btn_exec2.on_click(on_btn_exec2)
+      
+
+
+
+
+
+
+
+
+  # Execução da quinta aba: Avaliação do desempenho do Fine Tuning
+  with tab.output_to(4, select=False):  
+
+    # Criação do grid que vai conter as etapas e entradas/saídas
+    grid5 = colabwidigets.Grid(18,1)
+
+    # Atividade - 16 - X - Matriz de confusao
+    with grid5.output_to(0,0):
+      print('16 - X - Matriz de confusao')
+
+      btn_show_c_matrix_ft = ipywidgets.Button(description='Ver Matriz de confusão')
+
+      display(btn_show_c_matrix_ft)
+    
+      def on_btn_show_c_matrix_ft(b):
+        # Saída - Atividade 8
+        with grid5.output_to(1,0):
+          grid5.clear_cell()
+          y = set_learner.interp
+          print('Carregando Matriz de confusão, aguarde...')
+          grid5.clear_cell()
+          y.plot_confusion_matrix()
+        
+      btn_show_c_matrix_ft.on_click(on_btn_show_c_matrix_ft)  
+
+    # Atividade - 17 - Acuracia por categoria
+    with grid5.output_to(2,0):
+      print('17 - X - Acuracia por categoria')
+
+    # Atividade - 18 - top losses
+    with grid5.output_to(3,0):
+      print('18 - X - top losses')
+      slider_top_losses_ft = ipywidgets.IntSlider(min = 1, max = 8, step = 1, value = 2, description = "Principais perdas")
+      btn_show_top_losses_ft = ipywidgets.Button(description='Ver principais perdas')      
+
+      display(slider_top_losses_ft, btn_show_top_losses_ft)
+
+      def on_btn_show_top_losses_ft(b):
+        #Saída Atividade 19
+        with grid5.output_to(4,0):
+          y = set_learner.interp
+          print('Carregando principais perdas, aguarde...')
+          y.plot_top_losses(slider_top_losses_ft.value)  
+          print('carregou')
+
+      btn_show_top_losses_ft.on_click(on_btn_show_top_losses_ft)               
+
+    # Atividade - 19 - most confused
+    with grid5.output_to(5,0):
+      print('19 - X - most confused')  
+
+      slider_most_confused_ft = ipywidgets.IntSlider(min = 1, max = 8, step = 1, value = 1, description = "Top most confused")
+      btn_show_most_confused_ft = ipywidgets.Button(description='Ver mais confusos')      
+
+      display(slider_most_confused_ft, btn_show_most_confused_ft)
+
+      def on_btn_show_most_confused_ft(b):
+        #Saída Atividade 19
+        with grid5.output_to(6,0):
+          y = set_learner.interp
+          print('Carregando itens mais confusos, aguarde...')
+          print(y.most_confused(min_val=slider_most_confused_ft.value))
+          print('carregou')
+
+      btn_show_most_confused_ft.on_click(on_btn_show_most_confused_ft) 
+
+    # Atividade - 20 - Heatmaps
+    with grid5.output_to(7,0):
+      print('20 - X - Heatmaps')  
+    
+    # Atividade - 21 - Visualizações alternativa  
+    with grid5.output_to(8,0):
+      print('21 - X - Visualizações alternativa')  
+    
+    # Atividade - 22 - Data cleaning (de novo?)
+    with grid5.output_to(9,0):
+      print('22 - X - Data cleaning (de novo?)')  
+    
+    # Atividade - 
+    with grid5.output_to(10,0):
+      print('23 - X - Imagens no validation set')  
+
+    # Atividade - X
+    with grid5.output_to(11,0):
+      print('24 - X - Salvar Modelo')  
+
+      btn_save_model_ft = ipywidgets.Button(description='Salvar modelo')      
+
+      display(btn_save_model_ft)
+
+      def on_btn_save_model_ft(b):
+        #Saída Atividade 24
+        with grid5.output_to(12,0):
+          y = set_learner.learner
+          print('Salvando o modelo...')
+          y.save('model1')
+          print('salvou')
+
+      btn_save_model_ft.on_click(on_btn_save_model_ft) 
+
+
 
 
 
